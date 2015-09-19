@@ -2,6 +2,9 @@
 
 Input (keyboard) and sound are not implemented.
 
+## Dependencies
+- sdl2
+
 To build:
 ```
 nim c emulate.nim
