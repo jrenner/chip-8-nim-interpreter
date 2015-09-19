@@ -1,5 +1,7 @@
 # Chip-8 Interpreter implemented in Nim
 
+![screen](screen.png)
+
 Input (keyboard) and sound are not implemented.
 
 ## Dependencies
