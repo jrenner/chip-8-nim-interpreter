@@ -3,6 +3,7 @@
 Input (keyboard) and sound are not implemented.
 
 ## Dependencies
+- nim (compiler)
 - sdl2
 
 To build:
