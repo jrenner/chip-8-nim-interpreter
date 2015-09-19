@@ -75,15 +75,6 @@ type
     Graphics = array[0..NUM_PIXELS-1, bool]
 
 proc pixelLocation*(g: Graphics, x: int, y: int): uint16 =
-#     try:
-#         assert x >= 0
-#         assert x < 64
-#         assert y >= 0
-#         assert y < 32
-#     except:
-#         let e = getCurrentExceptionMsg()
-#         #echo "invalid X, Y values: {}, {}".fmt(x, y)
-#         raise
     let modX = x mod GRAPHICS_WIDTH
     let modY = y mod GRAPHICS_HEIGHT
     return uint16((modY * GRAPHICS_WIDTH) + modX)

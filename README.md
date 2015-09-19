@@ -1,6 +1,13 @@
 # Chip-8 Interpreter implemented in Nim
 
-Input (keyboard) and sound are not implemented.
+
+### Not implemented
+- input (keyboard)
+- sound
+- timers (delay, sound)
+- carry flag (VF)
+- ??
+
 
 ## Dependencies
 - nim (compiler)

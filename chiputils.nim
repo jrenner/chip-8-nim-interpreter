@@ -29,8 +29,9 @@ proc log*(msg: string, level: DebugLevel = trace) =
     
 
 proc convertTextToProgram(dummyPath: string, convertedPath: string) =
-    # there is a dummy program written in text that
-    # we want to convert to bytes
+    ## This function will convert a sort of chip 8 source to bytes
+    ## i.e. source written as "6504" will be converted to its hex bytes
+    ## two bytes per line
     let dummy = open(dummyPath)
     let converted = open(convertedPath, fmWrite)
     var bytes : array[0..4095, uint8]
