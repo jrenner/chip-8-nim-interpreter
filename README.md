@@ -1,6 +1,7 @@
 # Chip-8 Interpreter implemented in Nim
 
 ![screen](screen.png)
+![screen2](screen2.png)
 
 ### Not implemented
 - input (keyboard)
