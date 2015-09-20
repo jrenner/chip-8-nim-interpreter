@@ -7,8 +7,6 @@
 - input (keyboard)
 - sound
 - timers (delay, sound)
-- carry flag (VF)
-- ??
 
 ## Dependencies
 - nim (compiler)
