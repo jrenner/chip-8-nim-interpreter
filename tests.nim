@@ -60,9 +60,25 @@ proc testSEVx() =
     chip.emu
     assert chip.V[5] == 0xAA
     chip.emu
+    assert chip.V[5] == 0xAA
     # skip setting V5 to 0xFF
     chip.emu
+    chip.emu
+    chip.emu
+
+proc testSEVxVy() =
+    let chip = load("sevxvy.ch8")
+    chip.emu
     assert chip.V[5] == 0xAA
+    chip.emu
+    assert chip.V[6] == 0xAA
+    chip.emu
+    chip.emu
+    chip.emu
+    chip.emu
+    chip.emu
+    assert chip.V[1] == 0xEE
+    
 
 proc testSNEVx() =
     let chip = load("snevx.ch8")
@@ -241,10 +257,6 @@ proc testADDIVx() =
     assert chip.I == 0xBB
 
 proc testLDBVx() =
-    proc showMem(chip: Chip8) =
-        for i in 0'u16..2'u16:
-            echo "[{}]: {}".fmt(i, chip.memory[chip.I + i])
-            
     proc check(chip: Chip8, match: string) =
         var hasNonZero = false
         var res: string = ""
@@ -293,6 +305,23 @@ proc testLDIVx() =
         let mem = chip.memory[chip.I + uint16(i)]
         #echo "reg: 0x{}, mem: 0x{}".fmt(reg.hex, mem.hex)
         assert(reg == mem, "reg: 0x{}, mem: 0x{}".fmt(reg.hex, mem.hex))
+
+proc testLDVxI() =
+    let chip = load("ldvxi.ch8")
+    chip.emu
+    assert chip.I == 0x400
+    for i in 1..6:
+        chip.emu
+    let checkVals = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]
+    for i in 0..5:
+        assert chip.V[i] == uint8(checkVals[i])
+    chip.emu
+    echo "Memory:"
+    for i in 0..5:
+        let memLoc = chip.I + uint16(i)
+        assert chip.memory[memLoc] == chip.V[i]
+        echo "\t[{:04X}]: {:X}".fmt(i, chip.memory[i])
+
 
 proc testCALLRET() =
     let chip = load("callret.ch8")
@@ -350,5 +379,7 @@ testLDBVx()
 testLDIVx()
 testCALLRET()
 testGFX()
+testSEVxVy()
+testLDVxI()
 
 echo "\n========= ALL TESTS PASSED ========="

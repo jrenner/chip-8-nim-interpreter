@@ -266,12 +266,12 @@ proc SNEVx(c: Chip8, x: int, kk: uint8) =
         log("skipping next instruction")
         c.pc += 2
 
-proc SEVxVy(c: Chip8) =
-    log("SEVyVy not implemented", level = warning)
+proc SEVxVy(c: Chip8, x: int, y: int) =
+    if c.V[x] == c.V[y]:
+        c.pc += 2
 
 proc LDVx(c: Chip8, x: int, kk: uint8) =
     c.V[x] = kk
-    #log("LDVx not implemented", level = warning)
 
 proc ADDVx(c: Chip8, x: int, kk: uint8) =
     c.V[x] += kk
@@ -290,7 +290,12 @@ proc ANDVxVy(c: Chip8, x: int, y: int) =
 proc XORVxVy(c: Chip8, x: int, y: int) =
     c.V[x] = c.V[x] xor c.V[y]
 
-proc ADDVxVy(c: Chip8, x: int, y: int) =
+proc ADDVxVy(c: Chip8, x: int, y: int) =  
+    let sum: int = int(c.V[x]) + int(c.V[y])
+    if sum > 255:
+        c.V[0xF] = 1
+    else:
+        c.V[0xF] = 0
     c.V[x] = c.V[x] + c.V[y]
 
 proc SUBVxVy(c: Chip8, x: int, y: int) =
@@ -438,6 +443,9 @@ proc LDVxI(c: Chip8, x: int) =
     ## Read registers V0 through Vx from memory starting at location I.
     ## The interpreter reads values from memory starting at location I into registers V0 through Vx.
     log("LDVxI not implemented", level = warning)
+    for n in 0..x:
+        c.V[n] = c.memory[c.I + uint16(n)]
+
 
 proc CLS(c: Chip8) =
     log("CLS not implemented", level = warning)
@@ -493,10 +501,6 @@ proc fetchOpCode(c: Chip8): uint16 =
     c.pc += 2
     return opcode
 
-proc checkMask(n: uint16, mask: Natural): bool =
-    return (int(n) and int(mask)) != 0
-
-
 proc emulateCycle*(c: Chip8) =
     c.programStep += 1
     if c.programSize > 0 and c.programStep > c.programSize:
@@ -525,7 +529,7 @@ proc emulateCycle*(c: Chip8) =
         c.SNEVx(opcode.registerX, opcode.kkbyte)
     of 0x5000:
         opName = "SE Vx, Vy"
-        c.SEVxVy()
+        c.SEVxVy(opcode.registerX, opcode.registerY)
     of 0x6000:
         opName = "LD Vx, byte"
         c.LDVx(opcode.registerX, opcode.kkbyte)
