@@ -11,11 +11,6 @@ const FALLBACK_DEBUG_PROGRAM = false
 
 var chip: Chip8 = createChip8()
 
-proc testOpCode() =
-    chip.memory[chip.pc] = 0xA2
-    chip.memory[chip.pc + uint16(1)] = 0xF0
-    
-
 proc initialize() =
     let programName = "zero"
     var program: string

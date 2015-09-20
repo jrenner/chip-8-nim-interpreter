@@ -347,7 +347,12 @@ proc RNDVx(c: Chip8, x: int, kk: uint8) =
     ## The interpreter generates a random number from 0 to 255, 
     ## which is then ANDed with the value kk. The results are stored in Vx.
     ## See instruction 8xy2 for more information on AND.
-    c.V[x] = (uint8(random(256)) and kk)
+    let r1 = random(256)
+    let r2 = uint8(r1 mod 256) and kk
+    echo r1, r2
+    echo "r1: {}, r2: {}".fmt(r1, r2)
+    c.V[x] = r2
+    echo "RANDOM register: {}".fmt(c.V[x])
     
 
 proc DRW(c: Chip8, x: int, y: int, nibble: int) =
@@ -442,7 +447,6 @@ proc LDIVx(c: Chip8, x: int) =
 proc LDVxI(c: Chip8, x: int) =
     ## Read registers V0 through Vx from memory starting at location I.
     ## The interpreter reads values from memory starting at location I into registers V0 through Vx.
-    log("LDVxI not implemented", level = warning)
     for n in 0..x:
         c.V[n] = c.memory[c.I + uint16(n)]
 
@@ -516,7 +520,6 @@ proc emulateCycle*(c: Chip8) =
     case opcode and 0xF000
     of 0x1000:
         opName = "JP addr"
-        log("opcode: {}, address: {}".fmt(opcode.hex, opcode.address.hex))
         c.JP(opcode.address)
     of 0x2000:
         opName = "CALL addr"
@@ -649,6 +652,7 @@ proc emulateCycle*(c: Chip8) =
         log("ERROR: UNKNOWN opcode: {}".fmt(opcode.hex))
         fmtLine()
         log("")
+        quit(QuitFailure)
     assert opName != nil
     if c.drawRequired:
         c.drawGraphics

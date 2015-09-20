@@ -32,6 +32,7 @@ proc convertTextToProgram(dummyPath: string, convertedPath: string) =
     ## This function will convert a sort of chip 8 source to bytes
     ## i.e. source written as "6504" will be converted to its hex bytes
     ## two bytes per line
+    #echo "convert: {}".fmt(dummyPath)
     let dummy = open(dummyPath)
     let converted = open(convertedPath, fmWrite)
     var bytes : array[0..4095, uint8]
@@ -48,13 +49,16 @@ proc convertTextToProgram(dummyPath: string, convertedPath: string) =
                 bytes[i] = firstByte
                 bytes[i+1] = secondByte
                 i += 2
-                # echo "[{}] {}, first: {}, second: {}".fmt(line.len, line, firstByte.hex, secondByte.hex)
+                #echo "[{}] {}, first: {}, second: {}".fmt(line.len, line, firstByte.hex, secondByte.hex)
         except IOError:
-            #echo "IOError: " & getCurrentExceptionMsg()
+            let msg = getCurrentExceptionMsg()
+            if not msg.contains("EOF"):
+                echo "IOError: " & getCurrentExceptionMsg()
+                quit(QuitFailure)
             break
     #echo "bytes converted: {}".fmt(i)
     let written = converted.writeBytes(bytes, 0, i)
-    #echo "wrote {} bytes".fmt(written)
+    #echo "wrote {} bytes to {}".fmt(written, convertedPath)
     converted.close()
     dummy.close()
 

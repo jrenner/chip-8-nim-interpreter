@@ -16,19 +16,6 @@ var
     fpsman: FpsManager
 fpsman.init
 
-# Create texture that stores frame buffer
-
-var texture: TexturePtr = createTexture(render,
-    SDL_PIXELFORMAT_RGB332,
-    SDL_TEXTUREACCESS_STREAMING,
-    64, 32)
-
-
-# SDL_Texture* sdlTexture = SDL_CreateTexture(renderer,
-#     SDL_PIXELFORMAT_ARGB8888,
-#     SDL_TEXTUREACCESS_STREAMING,
-#     64, 32);
-
 type
     DisplayObj = object
     Display* = ref DisplayObj
