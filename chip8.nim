@@ -1,7 +1,7 @@
 # chip 8 emulator written in Nim
 # author: github.com/jrenner
 
-import strfmt
+import strformat
 import strutils
 import tables
 import unsigned
@@ -10,13 +10,14 @@ import os
 import times
 import math
 import sdl2utils
-import sdl
+import random
 
 # Chip8 has 4K total memory
 # System memory map:
 # 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 # 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
 # 0x200-0xFFF - Program ROM and work RAM
+#
 const memSize = 4096
 type
     Memory = array[0..memSize-1, uint8]
@@ -28,14 +29,14 @@ proc readValues*(memory: Memory) =
         map[value] = map[value] + 1
     log("memory values:")
     for k, v in map:
-        log("value: {:0>2X} -- count: {:>4}".fmt(k, v))
+        log("value: {k:0>2x} -- count: {v:>4}".fmt)
 
 
 proc viewSection*(memory: Memory, start: int, length: int) =
-    log("View memory section 0x{:0>4X} to 0x{:0>4X}".fmt(start, start+(length-1)))
+    log("View memory section 0x{start:0>4X} to 0x{start+(length-1):0>4X}".fmt)
     var ct = 0
     for i in start..(start+length)-1:
-        write(stdout, " [{:0>4X}] {:0>2X} |".fmt(i, memory[i]))
+        write(stdout, " [{i:0>4X}] {memory[i]:0>2X} |".fmt)
         ct += 1
         if ct mod 8 == 0:
             write(stdout, "\n")
@@ -56,10 +57,10 @@ proc readValues*(V: Registers) =
             if i == 15:
                 "CF"
             else:
-                "V{:X}".fmt(i)
+                "V{i:X}".fmt
         if name == "CF":
             log("Carry Flag:")
-        log("[{}]: {:0=4X}".fmt(name, int(value)))
+        log("[{name}]: {value.int:04X}".fmt)
 
 
 # The graphics system: The chip 8 has one instruction that draws sprite to the screen.
@@ -217,7 +218,7 @@ proc getHexDigit*(n_u16: uint16, position: int = 1): int =
     of 4:
         digit = n and 0x000F
     else:
-        log("failed to get hex digit for position: {}, n: {}".fmt(position, n))
+        log("failed to get hex digit for position: {position}, n: {n}".fmt)
         discard
     #echo "n_u16:{:X}, n:{:X}, digit: {:X}".fmt(n_u16, n, digit)
     digit
@@ -350,9 +351,9 @@ proc RNDVx(c: Chip8, x: int, kk: uint8) =
     let r1 = random(256)
     let r2 = uint8(r1 mod 256) and kk
     echo r1, r2
-    echo "r1: {}, r2: {}".fmt(r1, r2)
+    echo "r1: {r1}, r2: {r2}".fmt
     c.V[x] = r2
-    echo "RANDOM register: {}".fmt(c.V[x])
+    echo "RANDOM register: {c.V[x]}".fmt
     
 
 proc DRW(c: Chip8, x: int, y: int, nibble: int) =
@@ -487,7 +488,7 @@ proc loadProgram*(c: Chip8, filename: string) =
         let j = i + 0x0200 # program starts at 512 bytes
         c.memory[j] = buf[i]
     fin.close()
-    log("LOAD PROGRAM: '{}' ({} bytes)".fmt(filename, read))
+    log("LOAD PROGRAM: '{filename}' ({read} bytes)".fmt)
     #c.programSize = read div 2
 
 
@@ -508,7 +509,7 @@ proc fetchOpCode(c: Chip8): uint16 =
 proc emulateCycle*(c: Chip8) =
     c.programStep += 1
     if c.programSize > 0 and c.programStep > c.programSize:
-        log("exceed program size: {} -- EXIT".fmt(c.programSize))
+        log("exceed program size: {c.programSize} -- EXIT".fmt)
         quit(1)
     let orig_pc = c.pc
     sleep(CYCLE_TIME)
@@ -649,7 +650,7 @@ proc emulateCycle*(c: Chip8) =
             log("---------------------------------------")
         log("")
         fmtLine()
-        log("ERROR: UNKNOWN opcode: {}".fmt(opcode.hex))
+        log("ERROR: UNKNOWN opcode: {opcode.hex}".fmt)
         fmtLine()
         log("")
         quit(QuitFailure)
@@ -657,7 +658,7 @@ proc emulateCycle*(c: Chip8) =
     if c.drawRequired:
         c.drawGraphics
         c.drawRequired = false
-    log("[@{} STEP: {}] opcode [{}]: {}".fmt(orig_pc.hex, c.programStep, opcode.hex, opName))
+    log("[@{orig_pc.hex} STEP: {c.programStep}] opcode [{opcode.hex}]: {opName}".fmt)
 
     # execute
     

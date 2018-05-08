@@ -1,7 +1,6 @@
 import chip8
 import chiputils
-import strfmt
-import unsigned
+import strformat
 import math
 
 proc newChip(): Chip8 =
@@ -22,23 +21,23 @@ proc testLDVx() =
     assert chip.V[3] == 0
     assert chip.V[4] == 0
 
-    chip.emu()
+    chip.emu
     #chip.memory.viewSection(0x200, 10)
     #chip.V.readValues()
     assert chip.V[3] == 0xFF
     assert chip.V[4] == 0    
 
-    chip.emu()
+    chip.emu
     assert chip.V[3] == 0xAA
     assert chip.V[4] == 0
 
-    chip.emu()
+    chip.emu
     assert chip.V[4] == 0x55
 
-    chip.emu()
+    chip.emu
     assert chip.V[4] == 0x10
 
-    chip.emu()
+    chip.emu
     assert chip.V[0xE] == 0xCC
 
 proc testJP() =
@@ -53,7 +52,6 @@ proc testJP() =
     assert chip.pc == 0x200
     chip.emu
     assert chip.V[3] == 0xAA
-
 
 proc testSEVx() =
     let chip = load("sevx.ch8")
@@ -260,7 +258,7 @@ proc testLDBVx() =
             res.add($num)
         if res.len == 0:
             res = "0"
-        echo "res: {}, match: {}".fmt(res, match)
+        echo "res: {res}, match: {match}".fmt
         assert match == res
 
     let chip = load("ldbvx.ch8")
@@ -296,7 +294,7 @@ proc testLDIVx() =
         let reg = chip.V[uint16(i)]
         let mem = chip.memory[chip.I + uint16(i)]
         #echo "reg: 0x{}, mem: 0x{}".fmt(reg.hex, mem.hex)
-        assert(reg == mem, "reg: 0x{}, mem: 0x{}".fmt(reg.hex, mem.hex))
+        assert(reg == mem, "reg: 0x{reg.hex}, mem: 0x{mem.hex}".fmt)
 
 proc testLDVxI() =
     let chip = load("ldvxi.ch8")
@@ -312,7 +310,7 @@ proc testLDVxI() =
     for i in 0..5:
         let memLoc = chip.I + uint16(i)
         assert chip.memory[memLoc] == chip.V[i]
-        echo "\t[{:04X}]: {:X}".fmt(i, chip.memory[i])
+        echo "\t[{i:04X}]: {chip.memory[i]:X}".fmt
 
 
 proc testCALLRET() =
@@ -345,34 +343,37 @@ proc testGFX() =
     chip.gfx.printGraphics
 
 convertAllPrograms()
-#testLDVx()
-#testJP()
-#testSEVx()
-#testSNEVx()
-#testADDVx()
-#testLDVxVy()
-#testORVxVy()
-#testANDVxVy()
-#testXORVxVy()
-#testADDVxVy()
-#testSUBVxVy()
-#testSHRVx()
-#testSHLVx()
-#testSUBNVxVy()
-#testSNEVxVy()
-#testLDI()
-#testJPV0()
-#testLDVxDT()
-#testLDDTVx()
-#testLDSTVx()
-#testADDIVx()
-#testLDBVx()
-#testLDIVx()
-#testCALLRET()
-#testGFX()
-#testSEVxVy()
-#testLDVxI()
 
-testRNDVx()
+proc testAll() = 
+  testLDVx()
+  testJP()
+  testSEVx()
+  testSNEVx()
+  testADDVx()
+  testLDVxVy()
+  testORVxVy()
+  testANDVxVy()
+  testXORVxVy()
+  testADDVxVy()
+  testSUBVxVy()
+  testSHRVx()
+  testSHLVx()
+  testSUBNVxVy()
+  testSNEVxVy()
+  testLDI()
+  testJPV0()
+  testLDVxDT()
+  testLDDTVx()
+  testLDSTVx()
+  testADDIVx()
+  testLDBVx()
+  testLDIVx()
+  testCALLRET()
+  testGFX()
+  testSEVxVy()
+  testLDVxI()
+  testRNDVx()
+
+testJP()
 
 echo "\n========= ALL TESTS PASSED ========="

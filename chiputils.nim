@@ -1,20 +1,20 @@
 import strutils
-import strfmt
+import strformat
 import os
 
 proc hex*(n: Natural, length: int = 0): string =
     if n < 0:
-        "NEGATIVE: {:X}".fmt(n)
+        "NEGATIVE: {n:X}".fmt
     elif n < 0xFF:
-        "{:0>2X}".fmt(n)
+        "{n:0>2X}".fmt
     elif n < 0xFFFF:
-        "{:0>4X}".fmt(n)
+        "{n:0>4X}".fmt
     elif n < 0xFFFFFF:
-        "{:0>6X}".fmt(n)
+        "{n:0>6X}".fmt
     elif n < 0xFFFFFFFF:
-        "{:0>8X}".fmt(n)
+        "{n:0>8X}".fmt
     else:
-        "{:X}".fmt(n)
+        "{n:X}".fmt
 
 type
     DebugLevel* = enum
@@ -72,7 +72,7 @@ proc convertAllPrograms*() =
                let converted = joinPath(f.dir, f.name & ".ch8")
                #echo "writing converted program: ", converted
                convertTextToProgram(filename, converted)
-    echo "converted {} .prg files to .ch8".fmt(count)
+    echo "converted {count} .prg files to .ch8".fmt
         
 
 if isMainModule:
