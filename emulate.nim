@@ -1,8 +1,7 @@
 import chip8
-import unsigned
+import strformat
 import chiputils
 import times
-import strfmt
 import strutils
 import sdl2utils
 import os
@@ -17,14 +16,14 @@ proc initialize() =
     if paramCount() > 0:
         program = paramStr(1)
     elif FALLBACK_DEBUG_PROGRAM:
-        program = "programs/{}.ch8".fmt(programName)
-        echo "using debug fallback program: {}".fmt(program)
+        program = "programs/{programName}.ch8".fmt
+        echo "using debug fallback program: {program}".fmt
     else:
         echo "supply path to chip8 program as command argument"
         quit(QuitFailure)
     chip.initialize()
-    echo "program: {}".fmt(program)
-    chip.loadProgram("{}".fmt(program))
+    echo "program: {program}".fmt
+    chip.loadProgram("{program}".fmt)
   
 var pause* = false
 

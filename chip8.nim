@@ -387,17 +387,26 @@ proc DRW(c: Chip8, x: int, y: int, nibble: int) =
                 #echo "set pix state for ({}, {}): {}".fmt(x+j, y+i, pixelState)
                 c.gfx.setPixel(x+j, y+i, pixelState)
 
+proc isKeyPressed(keynum: int): bool =
+  result = false
+  log("TEMP DEBUG KEYBOARD VALUE BEING RETURNED: is key {keynum} pressed? {result}".fmt, level=warning)
+
+
 proc SKPVx(c: Chip8, x: int) =
     ## Skip next instruction if key with the value of Vx is pressed.
     ## Checks the keyboard, and if the key corresponding to the value
     ## of Vx is currently in the down position, PC is increased by 2.
-    log("SKPVx not implemented", level = warning)
+    var should_skip = isKeyPressed(x)
+    if should_skip:
+      c.pc += 2
 
 proc SKNPVx(c: Chip8, x: int) =
     ## Skip next instruction if key with the value of Vx is not pressed.
     ## Checks the keyboard, and if the key corresponding to the value of Vx
     ## is currently in the up position, PC is increased by 2.
-    log("SKNPVx not implemented", level = warning)
+    var should_skip = not isKeyPressed(x)
+    if should_skip:
+      c.pc += 2
 
 proc LDVxDT(c: Chip8, x: int) =
     ## Set Vx = delay timer value

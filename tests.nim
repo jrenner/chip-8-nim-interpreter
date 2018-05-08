@@ -53,6 +53,27 @@ proc testJP() =
     chip.emu
     assert chip.V[3] == 0xAA
 
+proc testSKPVx() =
+  let chip = load("skpvx.ch8")
+  chip.emu
+  chip.emu
+  chip.emu
+  chip.emu
+  assert chip.V[3].hex == "AA"
+  assert chip.V[4].hex == "BB"
+  assert chip.V[5].hex == "CC"
+
+proc testSKNPVx() =
+  let chip = load("sknpvx.ch8")
+  chip.emu
+  chip.emu
+  chip.emu
+  chip.emu
+  assert chip.V[3].hex == "AA"
+  assert chip.V[4].hex == "00"
+  assert chip.V[5].hex == "CC"
+  assert chip.V[6].hex == "DD"
+
 proc testSEVx() =
     let chip = load("sevx.ch8")
     chip.emu
@@ -373,7 +394,11 @@ proc testAll() =
   testSEVxVy()
   testLDVxI()
   testRNDVx()
+  testSKPVx()
+  testSKNPVx()
 
-testJP()
+testAll()
+#testSKPVx()
+#testSKNPVx()
 
 echo "\n========= ALL TESTS PASSED ========="
