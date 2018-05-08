@@ -1,5 +1,4 @@
 import sdl2, sdl2/gfx
-import chip8
 
 discard sdl2.init(INIT_EVERYTHING)
 
@@ -37,20 +36,60 @@ proc draw*(d: Display) =
     render.setDrawColor 0,0,0,255
     render.clear
 
-proc processKeys*(): string =
+proc processKeys*(): seq[(EventType, string)] =
+    result = @[]
     while pollEvent(evt):
+        var out_str = ""
         case evt.kind
-        of KeyDown:
+        of KeyDown, KeyUp:
             let p = cast[KeyboardeventPtr](addr evt)
             case p.keysym.scancode
             of SDL_SCANCODE_P:
-                return "pause"
+                out_str = "pause"
             of SDL_SCANCODE_SPACE:
-                return "space"
+                out_str = "space"
+            of SDL_SCANCODE_ESCAPE:
+                out_str = "quit"
+            of SDL_SCANCODE_1:
+              out_str = "1"
+            of SDL_SCANCODE_2:
+              out_str = "2"
+            of SDL_SCANCODE_3:
+              out_str = "3"
+            of SDL_SCANCODE_4:
+              out_str = "4"
+
             of SDL_SCANCODE_Q:
-                return "quit"
+              out_str = "Q"
+            of SDL_SCANCODE_W:
+              out_str = "W"
+            of SDL_SCANCODE_E:
+              out_str = "E"
+            of SDL_SCANCODE_R:
+              out_str = "R"
+
+            of SDL_SCANCODE_A:
+              out_str = "A"
+            of SDL_SCANCODE_S:
+              out_str = "S"
+            of SDL_SCANCODE_D:
+              out_str = "D"
+            of SDL_SCANCODE_F:
+              out_str = "F"
+
+            of SDL_SCANCODE_Z:
+              out_str = "Z"
+            of SDL_SCANCODE_X:
+              out_str = "X"
+            of SDL_SCANCODE_C:
+              out_str = "C"
+            of SDL_SCANCODE_V:
+              out_str = "V"
+
             else:
                 discard
+            let event_res = (evt.kind, out_str)
+            result.add(event_res)
         else:
             discard
 

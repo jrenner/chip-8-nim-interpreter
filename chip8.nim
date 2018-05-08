@@ -1,6 +1,14 @@
 # chip 8 emulator written in Nim
 # author: github.com/jrenner
 
+
+const DEBUG_CYCLE_SLEEP_DISABLED = false
+
+#const CYCLE_TIME: int = int(1000.0 / 60.0)
+#const CYCLE_TIME: int = int(1000.0 / 300.0)
+#const CYCLE_TIME: int = 1000
+const CYCLE_TIME: int = 1
+
 import strformat
 import strutils
 import tables
@@ -116,6 +124,7 @@ type
         gfx*: Graphics
         display*: Display
         drawRequired*: bool
+        keyboardPressed: array[16, bool]
 
         # index register (I) and program counter (PC), value from 0x000 to 0xFFF
         I*, pc*: uint16
@@ -350,10 +359,9 @@ proc RNDVx(c: Chip8, x: int, kk: uint8) =
     ## See instruction 8xy2 for more information on AND.
     let r1 = random(256)
     let r2 = uint8(r1 mod 256) and kk
-    echo r1, r2
-    echo "r1: {r1}, r2: {r2}".fmt
+    log("{r1} mod 256 & {kk} = {r2}".fmt)
     c.V[x] = r2
-    echo "RANDOM register: {c.V[x]}".fmt
+    #echo "RANDOM register: {c.V[x]}".fmt
     
 
 proc DRW(c: Chip8, x: int, y: int, nibble: int) =
@@ -387,16 +395,26 @@ proc DRW(c: Chip8, x: int, y: int, nibble: int) =
                 #echo "set pix state for ({}, {}): {}".fmt(x+j, y+i, pixelState)
                 c.gfx.setPixel(x+j, y+i, pixelState)
 
-proc isKeyPressed(keynum: int): bool =
-  result = false
-  log("TEMP DEBUG KEYBOARD VALUE BEING RETURNED: is key {keynum} pressed? {result}".fmt, level=warning)
+
+proc isKeyPressed*(c: Chip8, keynum: int): bool =
+  result = c.keyboardPressed[keynum]
+
+proc keyDown*(c: Chip8, keynum: int) =
+  c.keyboardPressed[keynum] = true
+
+proc keyUp*(c: Chip8, keynum: int) =
+  c.keyboardPressed[keynum] = false
+
+proc resetKeyboard*(c: Chip8) =
+  for i in 0..c.keyboardPressed.len - 1:
+    c.keyUp(i)
 
 
 proc SKPVx(c: Chip8, x: int) =
     ## Skip next instruction if key with the value of Vx is pressed.
     ## Checks the keyboard, and if the key corresponding to the value
     ## of Vx is currently in the down position, PC is increased by 2.
-    var should_skip = isKeyPressed(x)
+    var should_skip = c.isKeyPressed(x)
     if should_skip:
       c.pc += 2
 
@@ -404,7 +422,7 @@ proc SKNPVx(c: Chip8, x: int) =
     ## Skip next instruction if key with the value of Vx is not pressed.
     ## Checks the keyboard, and if the key corresponding to the value of Vx
     ## is currently in the up position, PC is increased by 2.
-    var should_skip = not isKeyPressed(x)
+    var should_skip = not c.isKeyPressed(x)
     if should_skip:
       c.pc += 2
 
@@ -501,11 +519,6 @@ proc loadProgram*(c: Chip8, filename: string) =
     #c.programSize = read div 2
 
 
-#const CYCLE_TIME: int = int(1000.0 / 60.0)
-#const CYCLE_TIME: int = int(1000.0 / 300.0)
-#const CYCLE_TIME: int = 1000
-const CYCLE_TIME: int = 1
-#const CYCLE_TIME: int = 300
 
 proc fetchOpCode(c: Chip8): uint16 =
     let op_byte1 = c.memory[c.pc]
@@ -521,7 +534,8 @@ proc emulateCycle*(c: Chip8) =
         log("exceed program size: {c.programSize} -- EXIT".fmt)
         quit(1)
     let orig_pc = c.pc
-    sleep(CYCLE_TIME)
+    when not DEBUG_CYCLE_SLEEP_DISABLED:
+      sleep(CYCLE_TIME)
     # fetch opcode
     let opcode = c.fetchOpCode
     var opName: string
