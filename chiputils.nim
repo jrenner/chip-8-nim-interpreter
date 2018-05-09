@@ -2,6 +2,13 @@ import strutils
 import strformat
 import os
 
+type
+  DebugLevel* = enum
+      trace, debug, info, warning, error
+
+
+var debugLevel* = trace
+
 proc hex*(n: Natural, length: int = 0): string =
     if n < 0:
         "NEGATIVE: {n:X}".fmt
@@ -16,12 +23,6 @@ proc hex*(n: Natural, length: int = 0): string =
     else:
         "{n:X}".fmt
 
-type
-    DebugLevel* = enum
-        trace, debug, info, warning, error
-
-
-var debugLevel* = trace
 
 proc log*(msg: string, level: DebugLevel = trace) =
     if level >= debugLevel:

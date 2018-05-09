@@ -27,6 +27,7 @@ proc initialize() =
     chip.loadProgram("{program}".fmt)
   
 var pause* = false
+var lastPauseStep = 0
 
 let keyMap = [
   "1", "2", "3", "4",
@@ -39,46 +40,56 @@ proc mainLoop() =
     while true:
         chip.emulateCycle
         if pause:
-            while pause:
+            block pause_loop:
+              while pause:
                 for res in processKeys():
                   if res[0] == KeyDown:
                     case res[1]:
                     of "pause":
-                        pause = not pause
-                        break
+                      pause = false
+                      break
                     of "space":
-                        # will run one step but remain paused
-                        break
+                      # will run one step but remain paused
+                      echo "break pause"
+                      break pause_loop
                     of "quit":
-                        echo "USER QUIT"
-                        quit(QuitSuccess)
+                      echo "USER QUIT"
+                      quit(QuitSuccess)
                     else:
-                        sleep(100)
-        for res in processKeys():
-          echo "KEY RESULTS: ", res
-          let evt_kind: EventType = res[0]
-          let res_str = res[1]
-          case res_str:
-          of "pause":
-              echo "toggle pause"
-              pause = not pause
-              write(stdout, "PAUSED (press any key): ")
-          of "quit":
-              echo "USER QUIT"
-              quit(QuitSuccess)
-          else:
-            if res_str in keyMap:
-              let idx = keyMap.find(res_str)
-              if evt_kind == KeyDown:
-                chip.keyDown(idx)
-              elif evt_kind == KeyUp:
-                chip.keyUp(idx)
+                      sleep(100)
+        else:
+          for res in processKeys():
+            echo "KEY RESULTS: ", res
+            let evt_kind: EventType = res[0]
+            let res_str = res[1]
+            if evt_kind == KeyDown:
+              case res_str:
+              of "pause":
+                  if chip.programStep - lastPauseStep >= 10:
+                    pause = true
+                    lastPauseStep = chip.programStep
+                    write(stdout, "PAUSED (press any key): ")
+                    break
+              of "quit":
+                  echo "USER QUIT"
+                  quit(QuitSuccess)
               else:
-                echo "unhandled event type: ", evt_kind
-              #echo "RES: {res_str}, IDX: {idx}".fmt
-              #sleep(1000)
-            else:
-              discard
+                if res_str in keyMap:
+                  let key_log_level = trace
+                  let idx = keyMap.find(res_str)
+                  if evt_kind == KeyDown:
+                    #log("keydown: {res_str}".fmt, level=key_log_level)
+                    chip.keyDown(idx)
+                  elif evt_kind == KeyUp:
+                    #log("keyup: {res_str}".fmt, level=key_log_level)
+                    chip.keyUp(idx)
+                  else:
+                    discard
+                    #log("unhandled event type: {evt_kind}".fmt, level=key_log_level)
+                  #echo "RES: {res_str}, IDX: {idx}".fmt
+                  #sleep(1000)
+                else:
+                  discard
 
 
 #         if chip.drawFlag:

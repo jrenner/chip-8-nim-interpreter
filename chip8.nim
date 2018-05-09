@@ -2,7 +2,7 @@
 # author: github.com/jrenner
 
 
-const DEBUG_CYCLE_SLEEP_DISABLED = false
+const DEBUG_CYCLE_SLEEP_DISABLED = true
 
 #const CYCLE_TIME: int = int(1000.0 / 60.0)
 #const CYCLE_TIME: int = int(1000.0 / 300.0)
@@ -95,6 +95,10 @@ proc setPixel*(g: var Graphics, x: int, y: int, state: bool) =
 proc getPixelState*(g: var Graphics, x: int, y: int): bool =
     let loc = g.pixelLocation(x, y)
     return g[loc]
+
+proc clearGraphics*(g: var Graphics) =
+  for item in g.mitems:
+    item = false
 
 proc printGraphics*(g: Graphics) =
     var res = ""
@@ -278,6 +282,7 @@ proc SNEVx(c: Chip8, x: int, kk: uint8) =
 
 proc SEVxVy(c: Chip8, x: int, y: int) =
     if c.V[x] == c.V[y]:
+        log("skipping next instruction")
         c.pc += 2
 
 proc LDVx(c: Chip8, x: int, kk: uint8) =
@@ -344,6 +349,7 @@ proc SUBNVxVy(c: Chip8, x: int, y: int) =
 
 proc SNEVxVy(c: Chip8, x: int, y: int) =
     if c.V[x] != c.V[y]:
+        log("skipping next instruction")
         c.pc += 2
 
 proc LDI(c: Chip8, address: uint16) =
@@ -376,6 +382,7 @@ proc DRW(c: Chip8, x: int, y: int, nibble: int) =
     ## Display, for more information on the Chip-8 screen and sprites.
 
     #echo "DRAW X: {}, Y: {}".fmt(x, y)
+    var any_pixels_erased = false
     c.drawRequired = true
     for i in 0..nibble - 1:
         let spriteByte = c.memory[c.I + uint16(i)]
@@ -392,14 +399,21 @@ proc DRW(c: Chip8, x: int, y: int, nibble: int) =
             if toggle:
                 let currentState = c.gfx.getPixelState(x+j, y+i)
                 let pixelState = not currentState
+                if pixelState == false:
+                  any_pixels_erased = true 
                 #echo "set pix state for ({}, {}): {}".fmt(x+j, y+i, pixelState)
                 c.gfx.setPixel(x+j, y+i, pixelState)
+    if any_pixels_erased:
+      c.V[0xF] = 1
+    else:
+      c.V[0xF] = 0
 
 
 proc isKeyPressed*(c: Chip8, keynum: int): bool =
   result = c.keyboardPressed[keynum]
 
 proc keyDown*(c: Chip8, keynum: int) =
+  log("CHIP8 KeyDown: {keynum} - {keynum.hex}".fmt, level=trace)
   c.keyboardPressed[keynum] = true
 
 proc keyUp*(c: Chip8, keynum: int) =
@@ -409,6 +423,9 @@ proc resetKeyboard*(c: Chip8) =
   for i in 0..c.keyboardPressed.len - 1:
     c.keyUp(i)
 
+proc printKeyboard*(c: Chip8) =
+  for i in 0..c.keyboardPressed.len - 1:
+    echo "key {i}: {c.keyboardPressed[i]}".fmt
 
 proc SKPVx(c: Chip8, x: int) =
     ## Skip next instruction if key with the value of Vx is pressed.
@@ -416,6 +433,7 @@ proc SKPVx(c: Chip8, x: int) =
     ## of Vx is currently in the down position, PC is increased by 2.
     var should_skip = c.isKeyPressed(x)
     if should_skip:
+      log("skipping next instruction")
       c.pc += 2
 
 proc SKNPVx(c: Chip8, x: int) =
@@ -423,21 +441,37 @@ proc SKNPVx(c: Chip8, x: int) =
     ## Checks the keyboard, and if the key corresponding to the value of Vx
     ## is currently in the up position, PC is increased by 2.
     var should_skip = not c.isKeyPressed(x)
+    #log("register: {x} should_skip: {should_skip}".fmt)
+    #c.printKeyboard()
+    #sleep(1000)
     if should_skip:
+      log("skipping next instruction")
       c.pc += 2
+
+proc printDelayTimer(c: Chip8) =
+  echo "delay_timer: {c.delay_timer.time}".fmt
 
 proc LDVxDT(c: Chip8, x: int) =
     ## Set Vx = delay timer value
     c.V[x] = c.delay_timer.time
+    c.printDelayTimer
 
 proc LDVxK(c: Chip8, x: int) =
     ## Wait for a key press, store the value of the key in Vx.
     ## All execution stops until a key is pressed, then the value of that key is stored in Vx.
-    log("LDVxK not implemented", level = warning)
+    while true:
+      echo "LDvxK TEMPORARY DEBUG IMPLEMENTATION"
+      let res_list = processKeys()
+      for res in res_list:
+        let evt_kind = res[0]
+        let res_str = res[1]
+        echo "evt_kind: {evt_kind}, res_str: {res_str}".fmt
+      sleep(100)
 
 proc LDDTVx(c: Chip8, x: int) =
     ## Set delay timer value = Vx
     c.delay_timer.time = c.V[x]
+    c.printDelayTimer
 
 proc LDSTVx(c: Chip8, x: int) =
     ## Set sound timer value = Vx
@@ -480,7 +514,9 @@ proc LDVxI(c: Chip8, x: int) =
 
 
 proc CLS(c: Chip8) =
-    log("CLS not implemented", level = warning)
+    c.gfx.clearGraphics()
+    c.drawRequired = true
+
 
 proc RET(c: Chip8) =
     c.pc = c.stack[c.sp]
@@ -681,11 +717,12 @@ proc emulateCycle*(c: Chip8) =
     if c.drawRequired:
         c.drawGraphics
         c.drawRequired = false
-    log("[@{orig_pc.hex} STEP: {c.programStep}] opcode [{opcode.hex}]: {opName}".fmt)
+    log("[@{orig_pc.hex} STEP: {c.programStep}] opcode [{opcode.hex}]: {opName}".fmt, level=trace)
 
     # execute
     
     # update timers
     c.delay_timer.tick
     c.sound_timer.tick
+    #c.printDelayTimer
     
