@@ -29,12 +29,7 @@ proc initialize() =
 var pause* = false
 var lastPauseStep = 0
 
-let keyMap = [
-  "1", "2", "3", "4",
-  "Q", "W", "E", "R",
-  "A", "S", "D", "F",
-  "Z", "X", "C", "V"
-]
+
 
 proc mainLoop() =
     while true:
@@ -76,7 +71,7 @@ proc mainLoop() =
               else:
                 if res_str in keyMap:
                   let key_log_level = trace
-                  let idx = keyMap.find(res_str)
+                  let idx = getKeycode(res_str)
                   if evt_kind == KeyDown:
                     #log("keydown: {res_str}".fmt, level=key_log_level)
                     chip.keyDown(idx)

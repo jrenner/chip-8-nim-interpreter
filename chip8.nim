@@ -314,7 +314,12 @@ proc ADDVxVy(c: Chip8, x: int, y: int) =
     c.V[x] = c.V[x] + c.V[y]
 
 proc SUBVxVy(c: Chip8, x: int, y: int) =
+    if c.V[x] > c.V[y]:
+      c.V[0xF] = 1
+    else:
+      c.V[0xF] = 0
     c.V[x] = c.V[x] - c.V[y]
+
 
 proc SHRVx(c: Chip8, x: int) =
     ## Set Vx = Vx SHR 1.
@@ -459,14 +464,19 @@ proc LDVxDT(c: Chip8, x: int) =
 proc LDVxK(c: Chip8, x: int) =
     ## Wait for a key press, store the value of the key in Vx.
     ## All execution stops until a key is pressed, then the value of that key is stored in Vx.
-    while true:
-      echo "LDvxK TEMPORARY DEBUG IMPLEMENTATION"
-      let res_list = processKeys()
-      for res in res_list:
-        let evt_kind = res[0]
-        let res_str = res[1]
-        echo "evt_kind: {evt_kind}, res_str: {res_str}".fmt
-      sleep(100)
+    block main_loop:
+      while true:
+        #echo "LDvxK TEMPORARY DEBUG IMPLEMENTATION"
+        let res_list = processKeys()
+        for res in res_list:
+          let evt_kind = res[0]
+          let res_str = res[1]
+          #echo "evt_kind: {evt_kind}, res_str: {res_str}".fmt
+          let keycode = getKeycode(res_str)
+          if keycode != -1:
+            c.V[x] = keycode.uint8
+            break main_loop
+        sleep(500)
 
 proc LDDTVx(c: Chip8, x: int) =
     ## Set delay timer value = Vx

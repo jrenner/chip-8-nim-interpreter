@@ -9,6 +9,16 @@ type
 
 var debugLevel* = trace
 
+const keyMap* = [
+  "1", "2", "3", "4",
+  "Q", "W", "E", "R",
+  "A", "S", "D", "F",
+  "Z", "X", "C", "V"
+]
+
+proc getKeycode*(s: string): int =
+  result = keyMap.find(s)
+
 proc hex*(n: Natural, length: int = 0): string =
     if n < 0:
         "NEGATIVE: {n:X}".fmt
